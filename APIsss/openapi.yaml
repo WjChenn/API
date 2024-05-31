@@ -1,0 +1,145 @@
+openapi: 3.0.3
+info:
+  title: My Secure Bank API
+  version: 1.0.11
+paths:
+  /accounts:
+    post:
+      summary: Create a bank account
+      requestBody:
+        description: Bank account details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountReq'
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountRes'          
+        '400':
+          description: Invalid request
+  /accounts/{accountId}:
+    get:
+      summary: Get account balance
+      parameters:
+        - in: path
+          name: 'accountId'
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'          
+        '400':
+          description: Invalid input
+        '401':
+          description: Unauthorized (credentials missing or invalid)
+        '403':
+          description: Forbidden (user is authorized but cannot access the given bank account)
+        '404':
+          description: Resource not found (accountId not found)
+      security:
+        - basicAuth: [] 
+    post:
+      summary: Make a transaction (withdraw/deposit)
+      parameters:
+        - in: path
+          name: 'accountId'
+          description: The accountId that is included in the bank account creation response
+          schema:
+            type: string
+          required: true
+      requestBody:
+        description: Bank account details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransactionReq'
+        required: true
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Balance'         
+        '401':
+          description: Unauthorized (credentials missing or invalid)
+        '403':
+          description: Forbidden (user is authorized but cannot access the given bank account)
+        '404':
+          description: Resource not found (accountId not found)
+      security:
+        - basicAuth: [] 
+components:
+  schemas:
+    AccountReq:
+      type: object
+      properties:
+        username:
+          type: string
+          example: Johnny05
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: James
+        email:
+          type: string
+          example: john@email.com
+        password:
+          type: string
+          example: '12@345_'
+      required: 
+        - username
+        - firstName
+        - lastName
+        - email
+        - password
+    AccountRes:
+      type: object
+      properties:
+        username:
+          type: string
+          example: Johnny05
+        accountId:
+          type: string
+          description: randomly generated accountId
+          example: GR9608100010000001234567890
+    Balance:
+      type: object
+      properties:
+        currency:
+          type: string
+          example: EUR
+        amount:
+          type: number
+          description: account balance
+          example: 501.80
+    TransactionReq:
+      type: object
+      properties:
+        amount:
+          type: number
+          description: amount
+          example: 20
+        transactionType:
+          type: string
+          description: type of transaction
+          enum: [withdrawal, deposit]
+      required:
+        - amount
+        - transactionType
+  securitySchemes:
+    basicAuth:     # <-- arbitrary name for the security scheme
+      type: http
+      scheme: basic
